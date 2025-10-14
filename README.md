@@ -18,10 +18,28 @@ Analyze who cites your Google Scholar publications and categorize those citation
 
   * CSVs and a single Excel file with one sheet per category
   * Citation graph files (GraphML, GEXF)
-* Two analysis levels
+* Two analysis levels with complementary strengths:
 
   * Level 1 — Primary fetch and classification (uses API credits)
   * Level 2 — Offline refinement (no API calls)
+
+---
+
+## Strengths and Limitations of Levels
+
+**Level 1 (Primary)**
+
+* High recall. Tends to include most high-impact citations.
+* May have more **false accepts** (e.g., conference proceedings labeled as books).
+* Ideal for initial broad sweep of citations.
+
+**Level 2 (Refinement)**
+
+* High precision. Tends to remove misclassified entries.
+* May have more **false rejects** (i.e., miss some real high-impact citations).
+* Ideal when you want a cleaner, more conservative list of high-impact citations.
+
+For best results, run Level 1 first, then Level 2. Compare both outputs to balance recall and precision.
 
 ---
 
@@ -85,7 +103,7 @@ You can run GUI mode (recommended for beginners) or CLI mode.
 ### GUI mode
 
 ```bash
-python ImpactAnalysis_GUI.py
+python level1_graphical.py
 ```
 
 In the window:
@@ -113,7 +131,7 @@ Outputs are saved in `scholar_outputs/`:
 ### CLI mode
 
 ```bash
-python ImpactAnalysis.py
+python level1_analysis.py
 ```
 
 Follow the prompts. Outputs are the same.
@@ -125,7 +143,7 @@ Follow the prompts. Outputs are the same.
 If you already exported `all_citations.csv`, run a second pass to fix misclassified books (such as conference proceedings) without using any API credits.
 
 ```bash
-python refine_classification.py
+python level2_analysis.py
 ```
 
 Outputs are saved in `scholar_outputs_refined/`:
@@ -144,6 +162,7 @@ Outputs are saved in `scholar_outputs_refined/`:
 * Detects conferences by container keywords like proceedings, conference, symposium, workshop, LNCS, ACM or IEEE proceedings
 * Keeps real books and book-chapters as books
 * Preserves reviews, patents, theses
+* Stricter filters may remove some borderline high-impact citations
 
 ---
 
@@ -153,12 +172,14 @@ Outputs are saved in `scholar_outputs_refined/`:
 
 * Uses Crossref type when available
 * Uses heuristics to detect reviews, surveys, theses, patents, books, and conferences
+* Maximizes coverage (recall)
 
 ### Refinement (Level 2)
 
 * Uses existing citing title and container text only
 * Strong conference detection
 * Produces `refined_class`
+* More conservative (higher precision)
 
 ---
 
@@ -166,6 +187,7 @@ Outputs are saved in `scholar_outputs_refined/`:
 
 * Start with single mode to save credits, then refine.
 * For full analysis of your entire profile, run full mode then refine.
+* Compare Level 1 and Level 2 results to balance false accepts and false rejects.
 * Add Lens token if patent enrichment is required.
 
 ---
@@ -173,12 +195,12 @@ Outputs are saved in `scholar_outputs_refined/`:
 ## Example session
 
 ```
-$ python ImpactAnalysis_GUI.py
+$ python level1_graphical.py
 Found 85 publications
 Single mode: top paper has 135 citations
 Export complete to scholar_outputs/
 
-$ python refine_classification.py
+$ python level2_analysis.py
 Reclassified 954 citing items
 Books: 45 | Conferences: 117 | Reviews: 73 | Patents: 10 | Theses: 1 | Unknown: 15
 Saved in scholar_outputs_refined/
@@ -189,7 +211,7 @@ Saved in scholar_outputs_refined/
 ## FAQ
 
 Q: I ran out of SerpAPI credits.
-A: Run `refine_classification.py`. It uses your existing CSV and no API calls.
+A: Run `level2_analysis.py`. It uses your existing CSV and no API calls.
 
 Q: My books count looks too high.
 A: This is common when proceedings are published by Springer or IEEE. Refinement fixes this and adds a separate Conferences sheet.
